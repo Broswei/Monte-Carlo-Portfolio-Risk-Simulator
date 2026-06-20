@@ -4,13 +4,13 @@ from __future__ import annotations
 
 import numpy as np
 
-def sharpe_ratio(returns: np.ndarray, rf_ret: float = 0.0, periods_per_year: float | None = None) -> float:
+def sharpe_ratio(returns: np.ndarray, rf: float = 0.0, periods_per_year: float | None = None) -> float:
 
     sd = float(returns.std())
     if sd == 0:
         return 0.0
     
-    sharpe = (float(returns.mean()) - rf_ret) / sd
+    sharpe = (float(returns.mean()) - rf) / sd
     if periods_per_year: 
         sharpe *= np.sqrt(periods_per_year)
 

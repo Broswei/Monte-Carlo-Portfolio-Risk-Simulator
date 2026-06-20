@@ -6,8 +6,8 @@ from dataclasses import dataclass
 
 import numpy as np
 
-from stats import safe_cholesky, moments, repair_correlation
-from metrics import path_max_drawdowns
+from .stats import safe_cholesky, moments, repair_correlation
+from .metrics import path_max_drawdowns
 
 TRADING_DAYS = 252
 CONFIDENCE_LVLS = (0.90, 0.95, 0.99, 0.999)
@@ -109,6 +109,7 @@ def run_simulation(
         horizon_days = horizon_days,
         portfolio_val = portfolio_val,
         jitter = jitter,
+        risk = risk,
         moments = moment,
         vol_horizon = vol_hor,
         vol_annual = float(vol_ann_output),
@@ -128,7 +129,7 @@ def histogram (returns: np.ndarray, bins: int = HIST_BINS):
 class StepResult:
 
     equity: np.ndarray
-    final_rets: np.ndarray
+    final_returns: np.ndarray
     drawdowns: np.ndarray
     steps: int
     paths: int
@@ -170,7 +171,7 @@ def simulate_paths(
     for t in range(steps):
         z = rng.standard_normal((n_paths, n))
         g = mu_daily + (z @ ell.T)
-        port_ret = np.expm1(g) @ weights
+        port_ret = np.expm1(g) @ w_norm
         equity[:, t+1] = equity[:, t] * (1.0 + port_ret)
 
     final_returns = equity[:, -1] - 1.0
@@ -178,7 +179,7 @@ def simulate_paths(
 
     return StepResult(
         equity = equity,
-        final_rets = final_returns,
+        final_returns = final_returns,
         drawdowns = drawdowns,
         steps = steps,
         paths = n_paths

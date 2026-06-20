@@ -10,19 +10,19 @@ import numpy as np
 class Portfolio:
 
     weights: np.ndarray
-    returns: float
+    ret: float
     vol: float
     sharpe: float
-    long_applied_only: bool = False
+    long_only_applied: bool = False
 
 def portfolio_stats(weights: np.ndarray, mu: np.ndarray, cov: np.ndarray, rf: float = 0.0): 
 
     weight = np.asarray(weights, dtype = float)
     ret = float(weight @ mu)
-    volume = float(np.sqrt(weight @ cov @ weight))
-    sharpe = (ret - rf) / volume if volume > 0 else 0.0
+    vol = float(np.sqrt(weight @ cov @ weight))
+    sharpe = (ret - rf) / vol if vol > 0 else 0.0
     
-    return ret, volume, sharpe
+    return ret, vol, sharpe
 
 def _try_scipy():
 
@@ -54,12 +54,12 @@ def min_variance_weights(cov: np.ndarray, long_only: bool = False) -> Portfolio:
                 bounds = [(0.0, 1.0)] * n,
                 constraints = [{"type": "eq", "fun": lambda x: x.sum() - 1.0}],
             )
-            if res.success():
+            if res.success:
                 w = res.x
                 applied = True
             
-    ret, volume, sharpe = portfolio_stats(w, np.zeros(n), cov)
-    return Portfolio(weights = w, ret = ret, volume = volume, sharpe = sharpe, long_applied_only= applied)
+    ret, vol, sharpe = portfolio_stats(w, np.zeros(n), cov)
+    return Portfolio(weights = w, ret = ret, vol = vol, sharpe = sharpe, long_only_applied = applied)
 
 def max_sharpe_weights(mu: np.ndarray, cov: np.ndarray, rf: float = 0.0, long_only: bool = False) -> Portfolio:
 
@@ -77,8 +77,8 @@ def max_sharpe_weights(mu: np.ndarray, cov: np.ndarray, rf: float = 0.0, long_on
         if minimize is not None:
             def neg_sharpe(x):
                 ret = x @ mu
-                volume = np.sqrt(x @ cov @ x)
-                return -(ret - rf) / volume if volume > 0 else 0.0
+                vol = np.sqrt(x @ cov @ x)
+                return -(ret - rf) / vol if vol > 0 else 0.0
             
             res = minimize(
                 neg_sharpe,
@@ -87,12 +87,12 @@ def max_sharpe_weights(mu: np.ndarray, cov: np.ndarray, rf: float = 0.0, long_on
                 bounds=[(0.0, 1.0)] * n,
                 constraints=[{"type": "eq", "fun": lambda x: x.sum() - 1.0}]
             )
-            if res.success():
+            if res.success:
                 w = res.x
                 applied = True
 
-    ret, volume, sharpe = portfolio_stats(w, mu, cov, rf)
-    return Portfolio(weights = w, ret = ret, volume = volume, sharpe = sharpe, long_applied_only = applied)
+    ret, vol, sharpe = portfolio_stats(w, mu, cov, rf)
+    return Portfolio(weights = w, ret = ret, vol = vol, sharpe = sharpe, long_only_applied = applied)
 
 def efficient_frontier(mu: np.ndarray, cov: np.ndarray, points: int = 40):
 
@@ -109,10 +109,10 @@ def efficient_frontier(mu: np.ndarray, cov: np.ndarray, points: int = 40):
     returns = np.linspace(low - pad, high + pad, points)
 
     if denom <= 0: 
-        volumes = np.full_like(returns, np.sqrt(1.0 / A) if A > 0 else 0.0)
+        vols = np.full_like(returns, np.sqrt(1.0 / A) if A > 0 else 0.0)
     else:
         var = (A * returns**2 - 2*B*returns + C) / denom
-        volumes = np.sqrt(np.clip(var, 0, None))
+        vols = np.sqrt(np.clip(var, 0, None))
 
-    return returns, volumes
+    return returns, vols
 
