@@ -7,7 +7,7 @@ import pandas as pd
 import plotly.graph_objects as go
 import streamlit as st
  
-from risk import (
+from python.risk import (
     run_simulation,
     simulate_paths,
     histogram,
@@ -136,7 +136,7 @@ with st.sidebar:
     period = st.selectbox("History length", ["1y", "2y", "5y", "10y"], index=1)
     if st.button("Fetch & estimate →", width="stretch"):
         try:
-            from risk import fetch_prices
+            from python.risk import fetch_prices
  
             with st.spinner("Downloading prices…"):
                 prices = fetch_prices(tickers_str.split(","), period=period)
