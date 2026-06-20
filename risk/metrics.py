@@ -36,6 +36,12 @@ def max_drawdown(equity: np.ndarray) -> float:
     drawdown = equity / running_max - 1.0
     return float(-drawdown.min())
 
+def path_max_drawdowns(equity_mat: np.ndarray) -> np.ndarray:
+
+    running_max = np.maximum.accumulate(equity_mat, axis = 1)
+    drawdown = equity_mat / running_max - 1.0
+    return -drawdown.min(axis = 1)
+
 def calmar_ratio(annual_return: float, max_dd: float) -> float:
 
     if max_dd == 0.0:
